@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { fetchUser } from "./lib/data";
+import { fetchUser } from "@/lib/data";
 import bcrypt from "bcryptjs";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -20,14 +20,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     type: "password",
                 },
             },
-            //@ts-ignore
-            authorize: async (credentials: { email: string; password: string }) => {
-                const { email, password } = credentials;
+            authorize: async (credentials) => {
+                const email = credentials.email;
+                const password = credentials.password;
+                if (typeof email !== "string" || typeof password !== "string") {
+                    return null;
+                }
+
                 const user = await fetchUser(email);
-                if (!user) return null; //@ts-ignore
+                if (!user) return null;
                 const passwordsMatch = await bcrypt.compare(password, user.password);
-                if (passwordsMatch) return user;
-                return null;
+                if (!passwordsMatch) return null;
+                return { id: user.id, name: user.name, email: user.email };
             },
         }),
     ],

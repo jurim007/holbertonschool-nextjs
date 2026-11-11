@@ -1,14 +1,13 @@
 import bcrypt from "bcryptjs";
-import { db } from "@vercel/postgres";
-import { users, topics, questions } from "../../lib/placeholder-data";
+import { db, type VercelPoolClient } from "@vercel/postgres";
+import { users, topics, questions } from "@/lib/placeholder-data";
 
-const client = await db.connect();
+type DatabaseClient = VercelPoolClient;
 
-async function seedUsers() {
-  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+async function seedUsers(client: DatabaseClient) {
   await client.sql`
     CREATE TABLE IF NOT EXISTS users (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       email TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL
@@ -29,12 +28,10 @@ async function seedUsers() {
   return insertedUsers;
 }
 
-async function seedTopics() {
-  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-
+async function seedTopics(client: DatabaseClient) {
   await client.sql`
     CREATE TABLE IF NOT EXISTS topics (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
       title VARCHAR(255) NOT NULL
     );
   `;
@@ -52,12 +49,10 @@ async function seedTopics() {
   return insertedTopics;
 }
 
-async function seedQuestions() {
-  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-
+async function seedQuestions(client: DatabaseClient) {
   await client.sql`
     CREATE TABLE IF NOT EXISTS questions (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
       title VARCHAR(255) NOT NULL,
       topic_id UUID NOT NULL,
       votes INT NOT NULL,
@@ -78,17 +73,35 @@ async function seedQuestions() {
   return insertedQuestions;
 }
 
-export async function GET() {
+export async function POST() {
+  if (process.env.NODE_ENV === "production") {
+    return Response.json(
+      { error: "Seeding is disabled in production." },
+      { status: 404 }
+    );
+  }
+
+  let client: DatabaseClient | undefined;
   try {
+    client = await db.connect();
     await client.sql`BEGIN`;
-    await seedUsers();
-    await seedTopics();
-    await seedQuestions();
+    await seedUsers(client);
+    await seedTopics(client);
+    await seedQuestions(client);
     await client.sql`COMMIT`;
 
     return Response.json({ message: "Database seeded successfully" });
   } catch (error) {
-    await client.sql`ROLLBACK`;
-    return Response.json({ error }, { status: 500 });
+    console.error("Database seed failed:", error);
+    if (client) {
+      try {
+        await client.sql`ROLLBACK`;
+      } catch (rollbackError) {
+        console.error("Database seed rollback failed:", rollbackError);
+      }
+    }
+    return Response.json({ error: "Database seed failed." }, { status: 500 });
+  } finally {
+    client?.release();
   }
 }

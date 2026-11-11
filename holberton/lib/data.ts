@@ -27,7 +27,7 @@ export async function fetchTopic(id: string) {
     return data.rows && data.rows.length > 0 ? data.rows[0] : null;
   } catch (error) {
     console.error("Database Error:", error);
-    throw new Error("Failed to fetch topics.");
+    throw new Error("Failed to fetch topic.");
   }
 }
 
@@ -59,7 +59,6 @@ export async function insertTopic(topic: Pick<Topic, "title">) {
   try {
     const data =
       await sql<Topic>`INSERT INTO topics (title) VALUES (${topic.title}) RETURNING id;`;
-    console.log(data.rows[0]);
     return data.rows[0];
   } catch (error) {
     console.error("Database Error:", error);

@@ -5,7 +5,7 @@ export default function Page() {
   return (
     <main className="w-screen py-12 md:py-24 lg:py-32 flex flex-col items-center justify-center">
       <div className="container px-4 md:px-6">
-        <Link href={"/"}>
+        <Link href="/">
           <ChevronLeftIcon className="h-6 w-6 " />
         </Link>
         <div className="flex flex-col gap-4 items-center">

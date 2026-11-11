@@ -18,12 +18,41 @@ export default function Page() {
             </p>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
               <form
-              action={async () => {
-                "use server";
-                await signIn("default", { redirectTo: "/ui" });
-              }}>
-                <button className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
-                  <div>Sign In</div>
+                action={async (formData: FormData) => {
+                  "use server";
+                  await signIn("credentials", formData);
+                }}
+                className="flex flex-col gap-2 min-[400px]:flex-row"
+              >
+                <label className="sr-only" htmlFor="email">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Email"
+                  required
+                  className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                />
+                <label className="sr-only" htmlFor="password">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Password"
+                  required
+                  className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                />
+                <button
+                  type="submit"
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                >
+                  Sign In
                 </button>
               </form>
               <Link
