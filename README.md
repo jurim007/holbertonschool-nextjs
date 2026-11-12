@@ -1,3 +1,3 @@
-## Atlas Next JS
+## Next JS
 
-This is the starter template for the Atlas Next JS project. It contains the starting code for the Q&A application.
+This is the Next JS project.
